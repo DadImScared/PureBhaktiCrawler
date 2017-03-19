@@ -1,7 +1,6 @@
 /include/
 /lib/
 /Scripts/
-app.py
 config.py
 deploy_spiders.py
 links.db
