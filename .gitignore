@@ -6,7 +6,6 @@ config.py
 deploy_spiders.py
 links.db
 loaddata.py
-models.py
 peewee.db
 pip-selfcheck.json
 pyvenv.cfg
