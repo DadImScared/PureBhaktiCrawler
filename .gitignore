@@ -9,7 +9,7 @@ loaddata.py
 peewee.db
 pip-selfcheck.json
 pyvenv.cfg
-scrapy.cfg
+
 scrapy.exe
 testmodels.py
 tests.py
