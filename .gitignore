@@ -2,7 +2,7 @@
 /lib/
 /Scripts/
 config.py
-deploy_spiders.py
+
 links.db
 loaddata.py
 peewee.db
