@@ -1,0 +1,16 @@
+/include/
+/lib/
+/Scripts/
+app.py
+config.py
+deploy_spiders.py
+links.db
+loaddata.py
+models.py
+peewee.db
+pip-selfcheck.json
+pyvenv.cfg
+scrapy.cfg
+scrapy.exe
+testmodels.py
+tests.py
