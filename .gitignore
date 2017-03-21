@@ -2,7 +2,7 @@
 /lib/
 /Scripts/
 config.py
-
+/client/
 links.db
 loaddata.py
 peewee.db

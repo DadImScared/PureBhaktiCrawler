@@ -41,7 +41,7 @@ class BhagavatPatrika(Resource):
     @marshal_with(bp_list)
     def get(self, title):
         print(title)
-        return models.BhagavatPatrika.get(models.BhagavatPatrika.title==title), 200
+        return models.BhagavatPatrika.get(models.BhagavatPatrika.title==title)
 
 
 class BhagavatPatrikaSearch(Resource):
@@ -53,7 +53,7 @@ class BhagavatPatrikaSearch(Resource):
                     models.BhagavatPatrika.title.contains(query)
                 )
             ]
-               }, 200
+        }
 
 
 bp_api = Blueprint('resources.bhagavapatrika', __name__)

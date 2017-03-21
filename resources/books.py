@@ -20,7 +20,7 @@ class Books(Resource):
                 marshal(book, book_field)
                 for book in models.Book.select()
             ]
-        }, 200
+        }
 
 
 class BookSearch(Resource):
@@ -30,7 +30,7 @@ class BookSearch(Resource):
                 marshal(book, book_field)
                 for book in models.Book.select().where(models.Book.title.contains(query))
             ]
-        }, 200
+        }
 
 book_api = Blueprint('resources.books', __name__)
 api = Api(book_api)
