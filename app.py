@@ -1,5 +1,6 @@
 
 from flask import Flask, current_app
+from flask_cors import CORS
 
 import os
 import config
@@ -14,6 +15,7 @@ from resources.movies import movie_api
 from resources.songs import song_api
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.register_blueprint(bp_api, url_prefix='/api/v1')
 app.register_blueprint(book_api, url_prefix='/api/v1')
 app.register_blueprint(hk_api, url_prefix='/api/v1')
