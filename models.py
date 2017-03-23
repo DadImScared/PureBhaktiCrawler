@@ -20,12 +20,13 @@ class Movie(Model):
     """
 
     link = TextField(unique=True)
-    title = TextField(unique=True)
+    title = TextField(unique=True, index=True)
     hits = IntegerField(default=0)
 
     class Meta:
         database = DATABASE
         order_by = ('title',)
+
 
     @classmethod
     def create_movie(cls, link, title, hits=0):
@@ -65,7 +66,7 @@ class Book(Model):
     """
 
     link = TextField(unique=True)
-    title = TextField()
+    title = TextField(index=True)
     language = CharField()
     hits = IntegerField(default=0)
 
@@ -160,7 +161,7 @@ class BhagavatPatrika(Model):
     """
 
     link = TextField()
-    title = TextField()
+    title = TextField(index=True)
     year = TextField()
     issue = TextField()
     hits = IntegerField(default=0)
@@ -336,6 +337,36 @@ class Song(Model):
             return cls.create(link=link, title=title, category=category, hits=hits)
         except IntegrityError:
             return None
+
+
+def all_records():
+    records = {}
+    books = Book.select()
+    movies = Movie.select()
+    bp = BhagavatPatrika.select()
+    harikatha = HariKatha.select()
+    hmonthly = HarmonistMonthly.select()
+    hmagazine = HarmonistMagazine.select()
+    songs = Song.select()
+    lectures = AudioLecture.select()
+    # union = (books | movies | bp | harikatha | hmonthly | hmagazine | songs | lectures)
+    # books = union.lhs.lhs.lhs.lhs.lhs.lhs.lhs
+    # movies = union.lhs.lhs.lhs.lhs.lhs.lhs.rhs
+    # bp = union.lhs.lhs.lhs.lhs.lhs.rhs
+    # harikatha = union.lhs.lhs.lhs.lhs.rhs
+    # hmonthly = union.lhs.lhs.lhs.rhs
+    # hmagazine = union.lhs.lhs.rhs
+    # songs = union.lhs.rhs
+    # lectures = union.rhs
+    records['books'] = books
+    records['movies'] = movies
+    records['bp'] = bp
+    records['harikatha'] = harikatha
+    records['hmonthly'] = hmonthly
+    records['hmagazine'] = hmagazine
+    records['songs'] = songs
+    records['lectures'] = lectures
+    return records
 
 
 def initialize():

@@ -13,6 +13,7 @@ from resources.hmonthly import hmonthly_api
 from resources.lectures import lectures_api
 from resources.movies import movie_api
 from resources.songs import song_api
+from resources.all_results import all_api
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -24,6 +25,7 @@ app.register_blueprint(hmonthly_api, url_prefix='/api/v1')
 app.register_blueprint(lectures_api, url_prefix='/api/v1')
 app.register_blueprint(movie_api, url_prefix='/api/v1')
 app.register_blueprint(song_api, url_prefix='/api/v1')
+app.register_blueprint(all_api, url_prefix='/api/v1')
 app.secret_key = config.SECRET_KEY
 
 

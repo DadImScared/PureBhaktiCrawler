@@ -3,13 +3,7 @@ from flask import Blueprint
 
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
-
-hmonthly_field = {
-    'id': fields.Integer,
-    'link': fields.String,
-    'title': fields.String,
-    'hits': fields.Integer
-}
+from resources.api_fields import hmonthly_field
 
 
 class HarmonistMonthlyList(Resource):

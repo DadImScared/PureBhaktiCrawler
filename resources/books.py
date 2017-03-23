@@ -3,14 +3,7 @@ from flask import Blueprint, abort
 
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
-
-book_field = {
-    'id': fields.Integer,
-    'link': fields.String,
-    'title': fields.String,
-    'language': fields.String,
-    'hits': fields.Integer
-}
+from resources.api_fields import book_field
 
 
 class Books(Resource):

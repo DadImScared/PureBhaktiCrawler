@@ -3,15 +3,8 @@ from flask import Blueprint, abort
 
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
+from resources.api_fields import bp_list
 
-bp_list = {
-    'id': fields.Integer,
-    'link': fields.String,
-    'title': fields.String,
-    'year': fields.String,
-    'issue': fields.String,
-    'hits': fields.Integer
-}
 
 def bp_or_404(bp_name):
     try:
