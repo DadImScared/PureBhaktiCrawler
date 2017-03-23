@@ -65,7 +65,7 @@ class Book(Model):
     """
 
     link = TextField(unique=True)
-    title = TextField(unique=True)
+    title = TextField()
     language = CharField()
     hits = IntegerField(default=0)
 
