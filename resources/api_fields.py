@@ -9,6 +9,13 @@ book_field = {
     'hits': fields.Integer
 }
 
+book_search_field = {
+    'link': fields.String,
+    'title': fields.String,
+    'page': fields.Integer,
+    'content': fields.String
+}
+
 hk_field = {
     'id': fields.Integer,
     'link': fields.String,

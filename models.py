@@ -1,9 +1,10 @@
 
 from peewee import *
+from playhouse.sqlite_ext import *
 import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-DATABASE = SqliteDatabase('{}{}links.db'.format(dir_path, os.path.sep))
+DATABASE = SqliteExtDatabase('{}{}links.db'.format(dir_path, os.path.sep))
 
 
 class Movie(Model):
@@ -59,6 +60,7 @@ class Book(Model):
         title  TextField unique
         language CharField
         hits  IntegerField default 0
+        indexed = BooleanField default False
 
     Methods:
         create_book
@@ -69,6 +71,7 @@ class Book(Model):
     title = TextField(index=True)
     language = CharField()
     hits = IntegerField(default=0)
+    indexed = BooleanField(default=False)
 
     class Meta:
         database = DATABASE
@@ -98,6 +101,30 @@ class Book(Model):
             return cls.create(link=link, title=title, language=language, hits=hits)
         except IntegrityError:
             return None
+
+    @classmethod
+    def get_book(cls, book_id):
+        """Return Book object of the book_id used"""
+        try:
+            return cls.get(cls.id == book_id)
+        except DoesNotExist:
+            return None
+
+
+class FTSBook(FTSModel):
+    book_id = IntegerField()
+    page = IntegerField()
+    content = TextField()
+
+    class Meta:
+        database = DATABASE
+
+    @classmethod
+    def search_books(cls, query):
+        search = (cls.select(Book, cls).join(Book, on=(cls.book_id == Book.id).alias('books')).where(
+            cls.match(query)
+        ))
+        return search
 
 
 class HarmonistMagazine(Model):
