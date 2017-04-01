@@ -16,13 +16,14 @@ def make_pdf(request):
             f.write(chunk)
 
 
-def get_text(file, book):
+def get_text(file, item, index):
     pages = file.getNumPages()
     for num in range(pages):
-        models.FTSBook.create(book_id=book.id, page=num+1, content=file.getPage(num).extractText())
+
+        index.create(item_id=item.id, page=num + 1, content=file.getPage(num).extractText())
     # make book.indexed = True don't forget book.save() after
-    book.indexed = True
-    book.save()
+    item.indexed = True
+    item.save()
 
 
 def read_pdf(file_path):
@@ -42,19 +43,24 @@ def delete_pdf(file_path):
         pass
 
 
-def main():
-    books = models.Book.select().where((models.Book.language**'english') & (~(models.Book.indexed)))
-    for book in books:
-        url = book.link
+def index_content(model, model_index):
+    # books = models.Book.select().where((models.Book.language**'english') & (~(models.Book.indexed)))
+    if hasattr(model, 'language'):
+        items = model.select().where((model.language**'english') & (~(model.indexed)))
+    else:
+        items = model.select().where(~model.indexed)
+
+
+    for item in items:
+        url = item.link
         r = requests.get(url, stream=True)
         make_pdf(r)
         file = read_pdf(base_pdf_dir+'mypdf.pdf')
         if not file:
             delete_pdf(base_pdf_dir + 'mypdf.pdf')
             continue
-        get_text(file, book)
+        get_text(file, item, model_index)
         delete_pdf(base_pdf_dir+'mypdf.pdf')
 
 
-if __name__ == '__main__':
-    main()
+# index_content(models.BhagavatPatrika, models.FTSBP)

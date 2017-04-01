@@ -16,6 +16,12 @@ book_search_field = {
     'content': fields.String
 }
 
+magazine_search_field = {
+    'link': fields.String,
+    'title': fields.String,
+    'content': fields.String
+}
+
 hk_field = {
     'id': fields.Integer,
     'link': fields.String,

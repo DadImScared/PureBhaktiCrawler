@@ -111,17 +111,20 @@ class Book(Model):
             return None
 
 
-class FTSBook(FTSModel):
-    book_id = IntegerField()
-    page = IntegerField()
+class FTSBaseModel(FTSModel):
+    item_id = IntegerField()
     content = TextField()
 
     class Meta:
         database = DATABASE
 
+
+class FTSBook(FTSBaseModel):
+    page = IntegerField()
+
     @classmethod
     def search_books(cls, query):
-        search = (cls.select(Book, cls).join(Book, on=(cls.book_id == Book.id).alias('books')).where(
+        search = (cls.select(Book, cls).join(Book, on=(cls.item_id == Book.id).alias('books')).where(
             cls.match(query)
         ))
         return search
@@ -236,6 +239,7 @@ class HariKatha(Model):
         link  TextField unique
         title  TextField unique
         hits  IntegerField default 0
+        indexed  BooleanField default 0
 
     Methods:
         create_entry
@@ -244,6 +248,7 @@ class HariKatha(Model):
     link = TextField(unique=True)
     title = TextField(unique=True)
     hits = IntegerField(default=0)
+    indexed = BooleanField(default=0)
 
     class Meta:
         database = DATABASE
@@ -270,6 +275,16 @@ class HariKatha(Model):
             return None
 
 
+class FTSHK(FTSBaseModel):
+    @classmethod
+    def search_magazine(cls, query):
+        search = (cls.select(HariKatha, cls).join(HariKatha, on=(cls.item_id == HariKatha.id).alias('harikatha')).where(
+            cls.match(query)
+        ))
+        return search
+
+
+
 class HarmonistMonthly(Model):
     """HarmonistMonthly class for database
 
@@ -285,6 +300,7 @@ class HarmonistMonthly(Model):
     link = TextField(unique=True)
     title = TextField(unique=True)
     hits = IntegerField(default=0)
+    indexed = BooleanField(default=0)
 
     class Meta:
         database = DATABASE
@@ -304,6 +320,16 @@ class HarmonistMonthly(Model):
             return cls.create(link=link, title=title, hits=hits)
         except IntegrityError:
             return None
+
+
+class FTSHM(FTSBaseModel):
+    @classmethod
+    def search_magazine(cls, query):
+        search = (cls.select(HarmonistMonthly, cls).join(
+            HarmonistMonthly, on=(cls.item_id == HarmonistMonthly.id).alias('hmonthly')).where(
+            cls.match(query)
+        ))
+        return search
 
 
 class AudioLecture(Model):
@@ -399,5 +425,5 @@ def all_records():
 def initialize():
     DATABASE.connect()
     DATABASE.create_tables([Movie, Book, HarmonistMagazine, BhagavatPatrika, HariKatha, HarmonistMonthly,
-                            AudioLecture, Song], safe=True)
+                            AudioLecture, Song, FTSBook, FTSHK, FTSHM], safe=True)
     DATABASE.close()
