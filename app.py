@@ -1,5 +1,5 @@
 
-from flask import Flask, current_app
+from flask import Flask, current_app, abort
 from flask_cors import CORS
 
 import os
@@ -28,6 +28,9 @@ app.register_blueprint(song_api, url_prefix='/api/v1')
 app.register_blueprint(all_api, url_prefix='/api/v1')
 app.secret_key = config.SECRET_KEY
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return current_app.send_static_file('index.html')
 
 @app.route('/')
 @app.route('/<resource>')
