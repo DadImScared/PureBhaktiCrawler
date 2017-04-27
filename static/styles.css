@@ -1,0 +1,32 @@
+.main-body {
+    background: url("http://purebhakti.tv/pics/flat%2C800x800%2C075%2Ct.u1.jpg") no-repeat ;
+    background-size: cover;
+    height: 600px;
+    width: 100%;
+
+}
+
+.sticky-nav {
+    background-color: #110712;
+    z-index: 1000;
+    color: white;
+}
+
+#homenav {
+    color: white;
+}
+
+.fix-menu {
+    z-index:1;
+}
+
+.break-line {
+    word-wrap: break-word;
+}
+
+
+/*@media screen and (min-width: 768px) {*/
+    /*.main-body {*/
+        /*margin-top:-70px;*/
+    /*}*/
+/*}*/
