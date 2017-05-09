@@ -16,7 +16,7 @@ def add_magazine_info(magazine):
 def add_snippets(magazine, query):
     magazine.title = magazine.hmonthly.title
     magazine.link = magazine.hmonthly.link
-    magazine.content = make_snippets.make_snippets(magazine.content, query)
+    magazine.content, x = make_snippets.make_snippets(magazine.content, query)
     return magazine
 
 

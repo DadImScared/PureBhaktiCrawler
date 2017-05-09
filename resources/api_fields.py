@@ -16,6 +16,12 @@ book_search_field = {
     'content': fields.String
 }
 
+book_snippet_field = {
+    'title': fields.String,
+    'content': fields.List(fields.String),
+    'displayContent': fields.List(fields.String)
+}
+
 magazine_search_field = {
     'link': fields.String,
     'title': fields.String,

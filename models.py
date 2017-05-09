@@ -110,6 +110,44 @@ class Book(Model):
         except DoesNotExist:
             return None
 
+    @classmethod
+    def get_english_book(cls, name):
+        try:
+            return cls.get((cls.title == name) & (cls.language == 'english'))
+        except DoesNotExist:
+            return None
+
+
+class BookPage(Model):
+    book = ForeignKeyField(rel_model=Book, related_name='full_book')
+    title = TextField()
+    page = IntegerField()
+    link = TextField(unique=True)
+
+    class Meta:
+        database = DATABASE
+
+    @classmethod
+    def create_page(cls, book, title, page, link):
+        try:
+            return cls.create(book=book, title=title, page=page, link=link)
+        except IntegrityError:
+            return None
+
+
+class BookContent(Model):
+    title = TextField(unique=True)
+
+    class Meta:
+        database = DATABASE
+
+    @classmethod
+    def create_book(cls, title):
+        try:
+            return cls.create(title=title)
+        except IntegrityError:
+            return None
+
 
 class FTSBaseModel(FTSModel):
     item_id = IntegerField()
@@ -119,12 +157,35 @@ class FTSBaseModel(FTSModel):
         database = DATABASE
 
 
+class FTSFullBook(FTSBaseModel):
+    display_content = TextField()
+
+    @classmethod
+    def search_books(cls, query):
+        search = (cls.select(
+            BookContent, cls
+        ).join(
+            BookContent, on=(cls.item_id == BookContent.id).alias("fullbook")
+        ).where(cls.match(query)))
+        return search
+
+
 class FTSBook(FTSBaseModel):
     page = IntegerField()
 
     @classmethod
     def search_books(cls, query):
         search = (cls.select(Book, cls).join(Book, on=(cls.item_id == Book.id).alias('books')).where(
+            cls.match(query)
+        ))
+        return search
+
+
+class FTSBookPage(FTSBaseModel):
+
+    @classmethod
+    def search_pages(cls, query):
+        search = (cls.select(BookPage, cls).join(BookPage, on=(cls.item_id == BookPage.id).alias('pages')).where(
             cls.match(query)
         ))
         return search
@@ -425,5 +486,6 @@ def all_records():
 def initialize():
     DATABASE.connect()
     DATABASE.create_tables([Movie, Book, HarmonistMagazine, BhagavatPatrika, HariKatha, HarmonistMonthly,
-                            AudioLecture, Song, FTSBook, FTSHK, FTSHM], safe=True)
+                            AudioLecture, Song, FTSBook, FTSHK, FTSHM, BookPage, FTSBookPage,
+                            BookContent, FTSFullBook], safe=True)
     DATABASE.close()

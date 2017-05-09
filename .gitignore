@@ -12,5 +12,16 @@ bad_words.py
 scrapy.exe
 testmodels.py
 tests.py
-20050429_MURWI_PM_ENG_Morning Walk sub - Indupati Edit for translating.txt
 read_subs.py
+download_pdfs.py
+book_page_spider.py
+split_pdfs.py
+index_book_pages.py
+fix_text.py
+read_epub.py
+testformurli.txt
+allbooks.txt
+combined2.txt
+find_unicodes.py
+combined3.txt
+combined3a.txt

@@ -3,12 +3,19 @@ from flask import Blueprint, abort
 
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
-from resources.api_fields import book_field, book_search_field
+from resources.api_fields import book_field, book_search_field, book_snippet_field
+from make_snippets import make_snippets, can_make_snippet
 
 
 def add_book_info(book):
     book.title = book.books.title
     book.link = book.books.link
+    return book
+
+
+def add_snippet(book, query):
+    book.title = book.fullbook.title
+    book.displayContent, book.content = make_snippets(book.content, query, display_content=book.display_content)
     return book
 
 
@@ -36,8 +43,8 @@ class BookContentSearch(Resource):
     def get(self, query):
         return {
             'books': [
-                marshal(add_book_info(book), book_search_field)
-                for book in models.FTSBook.search_books(query)
+                marshal(add_snippet(book, query), book_snippet_field)
+                for book in models.FTSFullBook.search_books(query) if can_make_snippet(book.content, query)
             ]
         }
 

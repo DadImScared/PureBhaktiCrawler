@@ -36,6 +36,27 @@ class BookPipeline(object):
         return item
 
 
+class BookPagePipeline(object):
+    def process_item(self, item, spider):
+        models.BookPage.create_page(book=self.get_book(item['title']),
+                                    title=self.get_name(item['title']),
+                                    page=self.get_page(item['title']),
+                                    link=item['link'])
+        return item
+
+    def get_name(self, name):
+        return name.split(']', 1)[1].rsplit('.', 1)[0]
+
+    def get_page(self, title):
+        try:
+            return int(title.split(']', 1)[0].split('[', 1)[1])
+        except ValueError:
+            return None
+
+    def get_book(self, name):
+        return models.Book.get_english_book(self.get_name(name)).id
+
+
 class HarmonistMagazinePipeline(object):
     """Saves items to HarmonistMagazine database table"""
     def process_item(self, item, spider):
