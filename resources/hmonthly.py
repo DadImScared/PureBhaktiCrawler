@@ -4,7 +4,7 @@ from flask import Blueprint
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
 from resources.api_fields import hmonthly_field, magazine_search_field, magazine_snippet_field
-import make_snippets
+from make_snippets import make_snippets, can_make_snippet
 
 
 def add_magazine_info(magazine):
@@ -16,7 +16,7 @@ def add_magazine_info(magazine):
 def add_snippets(magazine, query):
     magazine.title = magazine.hmonthly.title
     magazine.link = magazine.hmonthly.link
-    magazine.content, x = make_snippets.make_snippets(magazine.content, query)
+    magazine.content, x = make_snippets(magazine.content, query)
     return magazine
 
 
@@ -52,7 +52,7 @@ class HarmonistMonthlyContentSearch(Resource):
             return {
                 'magazines': [
                     marshal(add_snippets(magazine, query), magazine_snippet_field)
-                    for magazine in models.FTSHM.search_magazine(query)
+                    for magazine in models.FTSHM.search_magazine(query) if can_make_snippet(magazine.content, query)
                     ]
             }
         else:

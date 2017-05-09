@@ -5,7 +5,7 @@ from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_wit
 import requests
 import models
 from resources.api_fields import hk_field, magazine_search_field, magazine_snippet_field
-import make_snippets
+from make_snippets import make_snippets, can_make_snippet
 
 
 def add_magazine_info(magazine):
@@ -17,7 +17,7 @@ def add_magazine_info(magazine):
 def add_snippets(magazine, query):
     magazine.title = magazine.harikatha.title
     magazine.link = magazine.harikatha.link
-    snippets1, snippets2 = make_snippets.make_snippets(magazine.content, query)
+    snippets1, snippets2 = make_snippets(magazine.content, query)
     magazine.content = snippets1
     return magazine
 
@@ -54,7 +54,7 @@ class HariKathaContentSearch(Resource):
             return {
                 'magazines': [
                     marshal(add_snippets(magazine, query), magazine_snippet_field)
-                    for magazine in models.FTSHK.search_magazine(query)
+                    for magazine in models.FTSHK.search_magazine(query) if can_make_snippet(magazine.content, query)
                 ]
             }
         else:
