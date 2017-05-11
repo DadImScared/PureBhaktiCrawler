@@ -16,10 +16,15 @@ book_search_field = {
     'content': fields.String
 }
 
+book_content_field = {
+    'snippet': fields.String,
+    'indexes': fields.Integer
+}
+
 book_snippet_field = {
     'title': fields.String,
     'content': fields.List(fields.String),
-    'displayContent': fields.List(fields.String)
+    'displayContent': fields.List(fields.List(fields.Integer))
 }
 
 magazine_search_field = {

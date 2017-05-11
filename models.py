@@ -151,14 +151,14 @@ class BookContent(Model):
 
 class FTSBaseModel(FTSModel):
     item_id = IntegerField()
-    content = TextField()
+    content = TextField(index=True)
 
     class Meta:
         database = DATABASE
 
 
 class FTSFullBook(FTSBaseModel):
-    display_content = TextField()
+    display_content = TextField(index=True)
 
     @classmethod
     def search_books(cls, query):
@@ -486,6 +486,6 @@ def all_records():
 def initialize():
     DATABASE.connect()
     DATABASE.create_tables([Movie, Book, HarmonistMagazine, BhagavatPatrika, HariKatha, HarmonistMonthly,
-                            AudioLecture, Song, FTSBook, FTSHK, FTSHM, BookPage, FTSBookPage,
+                            AudioLecture, Song, FTSBook, FTSHK, FTSHM,
                             BookContent, FTSFullBook], safe=True)
     DATABASE.close()

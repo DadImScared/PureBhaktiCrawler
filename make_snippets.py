@@ -4,6 +4,17 @@ import re
 from remove_words import remove_stop_words
 
 
+def find_indexes(search, query):
+    search_lst = search.lower().split()
+    query = remove_stop_words(query.split())
+    indexes = []
+    for i, e in enumerate(search_lst):
+        for word in query:
+            if word in e:
+                indexes.append(i)
+    return indexes
+
+
 def can_make_snippet(content, query):
     if re.search(query, content):
         return True
@@ -65,6 +76,7 @@ def collect_indexes(first_word, last_word, content_lst):
 def collect_all_indexes(query, content_lst):
     search_words = remove_stop_words(query.split(" "))
     indexes = set()
+
     for index, element in enumerate(content_lst):
         for word in search_words:
             if word in element:
@@ -105,6 +117,41 @@ def make_snippets(content, query, word_sep=50, display_content=None):
     complete_snippets = []
     group_content = []
     search_snippets = []
+    # for index in solo_snippets:
+    #     if index-word_sep > 0:
+    #         if index < len(content_lst)-word_sep:
+    #             complete_snippets.append([" ".join(content_lst[index - word_sep:index+word_sep]),
+    #                                       find_indexes(" ".join(content_lst[index - word_sep:index+word_sep]), query)])
+    #         else:
+    #             complete_snippets.append([" ".join(content_lst[index - word_sep:]),
+    #                                       find_indexes(" ".join(content_lst[index - word_sep:]),query)])
+    #     else:
+    #         if index < len(content_lst)-word_sep:
+    #             complete_snippets.append([" ".join(content_lst[:index+word_sep]),
+    #                                       find_indexes(" ".join(content_lst[:index+word_sep]), query)])
+    #         else:
+    #             complete_snippets.append([" ".join(content_lst[:index+(len(content_lst)-index)]),
+    #                                       find_indexes(" ".join(content_lst[:index+(len(content_lst)-index)]), query)])
+    #         # complete_snippets.append(" ".join(apart[index-50:]))
+    # for group in group_snippets:
+    #     if group[0]-word_sep > 0:
+    #         if group[-1] < len(content_lst)-word_sep:
+    #             complete_snippets.append([" ".join(content_lst[group[0]-word_sep:group[-1]+word_sep]),
+    #                                       find_indexes(" ".join(content_lst[group[0]-word_sep:group[-1]+word_sep]),
+    #                                                    query)])
+    #         else:
+    #             complete_snippets.append([" ".join(content_lst[group[0]-word_sep:]),
+    #                                       find_indexes(" ".join(content_lst[group[0]-word_sep:]), query)])
+    #     else:
+    #         if group[-1] < len(content_lst)-word_sep:
+    #             complete_snippets.append([" ".join(content_lst[:group[-1]+word_sep]),
+    #                                       find_indexes(" ".join(content_lst[:group[-1]+word_sep]), query)])
+    #
+    #         else:
+    #             complete_snippets.append([" ".join(content_lst[:group[-1]+(len(content_lst)-group[-1])]),
+    #                                       find_indexes(" ".join(content_lst[:group[-1]+(len(content_lst)-group[-1])]),
+    #                                                    query)])
+
     for index in solo_snippets:
         if index-word_sep > 0:
             if index < len(content_lst)-word_sep:

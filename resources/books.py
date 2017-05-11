@@ -4,7 +4,7 @@ from flask import Blueprint, abort
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
 from resources.api_fields import book_field, book_search_field, book_snippet_field
-from make_snippets import make_snippets, can_make_snippet
+from make_snippets import make_snippets, can_make_snippet, find_indexes
 
 
 def add_book_info(book):
@@ -15,7 +15,11 @@ def add_book_info(book):
 
 def add_snippet(book, query):
     book.title = book.fullbook.title
-    book.displayContent, book.content = make_snippets(book.content, query, display_content=book.display_content)
+    book.content, x = make_snippets(book.content, query, display_content=book.display_content)
+    indexes = []
+    for snippet in x:
+        indexes.append(find_indexes(snippet, query))
+    book.displayContent = [i for i in indexes]
     return book
 
 
