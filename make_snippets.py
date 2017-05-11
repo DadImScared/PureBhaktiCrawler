@@ -110,7 +110,7 @@ def make_snippets(content, query, word_sep=50, display_content=None):
         else:
             indexes = collect_all_indexes(query, search_content)
     else:
-        indexes = make_index(search_content, query)
+        indexes = find_indexes(content, query)
     if not indexes:
         return
     solo_snippets, group_snippets = sort_indexes(indexes, word_sep)
