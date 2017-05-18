@@ -17,7 +17,6 @@ download_pdfs.py
 book_page_spider.py
 split_pdfs.py
 index_book_pages.py
-fix_text.py
 read_epub.py
 testformurli.txt
 allbooks.txt
