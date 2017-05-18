@@ -14,13 +14,12 @@ def add_book_info(book):
 
 
 def add_snippet(book, query):
-    book.title = book.fullbook.title
-    book.content, x = make_snippets(book.content, query, display_content=book.display_content)
-    indexes = []
-    for snippet in x:
-        indexes.append(find_indexes(snippet, query))
-    book.displayContent = [i for i in indexes]
+    book.title = book.pages.title
+    book.indexes = find_indexes(book.content, query)
+    book.page = book.pages.page
+    book.content = book.pages.display_content
     return book
+
 
 
 class Books(Resource):
@@ -48,7 +47,7 @@ class BookContentSearch(Resource):
         return {
             'books': [
                 marshal(add_snippet(book, query), book_snippet_field)
-                for book in models.FTSFullBook.search_books(query) if can_make_snippet(book.content, query)
+                for book in models.FTSBookPage.search_pages(query)
             ]
         }
 

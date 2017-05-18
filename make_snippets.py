@@ -5,8 +5,8 @@ from remove_words import remove_stop_words
 
 
 def find_indexes(search, query):
-    search_lst = search.lower().split()
-    query = remove_stop_words(query.split())
+    search_lst = search.lower().split(" ")
+    query = remove_stop_words(query.lower().split(" "))
     indexes = []
     for i, e in enumerate(search_lst):
         for word in query:

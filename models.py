@@ -119,18 +119,20 @@ class Book(Model):
 
 
 class BookPage(Model):
-    book = ForeignKeyField(rel_model=Book, related_name='full_book')
+    book = ForeignKeyField(rel_model=Book, related_name='full_book', null=True)
     title = TextField()
     page = IntegerField()
-    link = TextField(unique=True)
+    display_content = TextField()
 
     class Meta:
         database = DATABASE
 
     @classmethod
-    def create_page(cls, book, title, page, link):
+    def create_page(cls, title, page, display_content, book=None):
         try:
-            return cls.create(book=book, title=title, page=page, link=link)
+            if book:
+                return cls.create(book=book, title=title, page=page, display_content=display_content)
+            return cls.create(title=title, page=page, display_content=display_content)
         except IntegrityError:
             return None
 
@@ -486,6 +488,6 @@ def all_records():
 def initialize():
     DATABASE.connect()
     DATABASE.create_tables([Movie, Book, HarmonistMagazine, BhagavatPatrika, HariKatha, HarmonistMonthly,
-                            AudioLecture, Song, FTSBook, FTSHK, FTSHM,
+                            AudioLecture, Song, FTSBook, FTSHK, FTSHM, BookPage, FTSBookPage,
                             BookContent, FTSFullBook], safe=True)
     DATABASE.close()
