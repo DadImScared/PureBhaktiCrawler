@@ -44,6 +44,16 @@ class BookSearch(Resource):
 
 class BookContentSearch(Resource):
     def get(self, query):
+        # parser = reqparse.RequestParser()
+        # parser.add_argument('limit')
+        # args = parser.parse_args()
+        # if args['limit']:
+        #     return {
+        #         'books': [
+        #             marshal(add_snippet(book, query), book_snippet_field)
+        #             for book in models.FTSBookPage.search_pages(query).limit(int(args["limit"]))
+        #             ]
+        #     }
         return {
             'books': [
                 marshal(add_snippet(book, query), book_snippet_field)
