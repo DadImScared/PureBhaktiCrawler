@@ -1,6 +1,7 @@
 
 from peewee import *
 from playhouse.sqlite_ext import *
+from playhouse.flask_utils import PaginatedQuery
 import os
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
