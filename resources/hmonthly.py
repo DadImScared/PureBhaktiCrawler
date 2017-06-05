@@ -5,6 +5,7 @@ from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_wit
 import models
 from resources.api_fields import hmonthly_field, magazine_search_field, magazine_snippet_field
 from make_snippets import make_snippets, can_make_snippet
+from remove_words import remove_stop_words
 
 
 def add_magazine_info(magazine):
@@ -32,6 +33,17 @@ class HarmonistMonthlyList(Resource):
 
 class HarmonistMonthlySearch(Resource):
     def get(self, query):
+        if len(query.split(" ")) > 1:
+            return {
+                'magazines': [
+                    marshal(magazine, hmonthly_field)
+                    for magazine in models.HarmonistMonthly.select().where(
+                        models.HarmonistMonthly.title.regexp(
+                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
+                        )
+                    )
+                ]
+            }
         return {
             'magazines': [
                 marshal(magazine, hmonthly_field)

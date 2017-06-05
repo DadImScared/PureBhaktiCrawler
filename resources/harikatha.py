@@ -6,6 +6,7 @@ import requests
 import models
 from resources.api_fields import hk_field, magazine_search_field, magazine_snippet_field
 from make_snippets import make_snippets, can_make_snippet
+from remove_words import remove_stop_words
 
 
 def add_magazine_info(magazine):
@@ -34,6 +35,17 @@ class HariKathaList(Resource):
 
 class HariKathaSearch(Resource):
     def get(self, query):
+        if len(query.split(" ")) > 1:
+            return {
+                'magazines': [
+                    marshal(magazine, hk_field)
+                    for magazine in models.HariKatha.select().where(
+                        models.HariKatha.title.regexp(
+                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
+                        )
+                    )
+                ]
+            }
         return {
             'magazines': [
                 marshal(magazine, hk_field)

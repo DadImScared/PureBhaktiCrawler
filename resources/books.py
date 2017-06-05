@@ -5,6 +5,7 @@ from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_wit
 import models
 from resources.api_fields import book_field, book_search_field, book_snippet_field
 from make_snippets import make_snippets, can_make_snippet, find_indexes
+from remove_words import remove_stop_words
 
 
 def add_book_info(book):
@@ -33,12 +34,23 @@ class Books(Resource):
 
 
 class BookSearch(Resource):
+
     def get(self, query):
+        print(query)
+        if len(query.split(" ")) > 1:
+            return {
+                'books': [
+                    marshal(book, book_field)
+                    for book in models.Book.select().where(
+                        models.Book.title.regexp(r"[-\s_]+".join(remove_stop_words(query.lower().split(" "))))
+                    )
+                ]
+            }
         return {
             'books': [
                 marshal(book, book_field)
                 for book in models.Book.select().where(models.Book.title.contains(query))
-            ]
+                ]
         }
 
 

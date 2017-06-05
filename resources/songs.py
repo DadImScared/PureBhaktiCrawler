@@ -4,6 +4,7 @@ from flask import Blueprint
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
 from resources.api_fields import song_field
+from remove_words import remove_stop_words
 
 
 class SongList(Resource):
@@ -18,6 +19,17 @@ class SongList(Resource):
 
 class SongSearch(Resource):
     def get(self, query):
+        if len(query.split(" ")) > 1:
+            return {
+                'songs': [
+                    marshal(song, song_field)
+                    for song in models.Song.select().where(
+                        models.Song.title.regexp(
+                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
+                        )
+                    )
+                ]
+            }
         return {
             'songs': [
                 marshal(song, song_field)

@@ -4,6 +4,7 @@ from flask import Blueprint, abort
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
 from resources.api_fields import bp_list
+from remove_words import remove_stop_words
 
 
 def bp_or_404(bp_name):
@@ -39,6 +40,17 @@ class BhagavatPatrika(Resource):
 
 class BhagavatPatrikaSearch(Resource):
     def get(self, query):
+        if len(query.split(" ")) > 1:
+            return {
+                'magazines': [
+                    marshal(bp, bp_list)
+                    for bp in models.BhagavatPatrika.select().where(
+                        models.BhagavatPatrika.title.regexp(
+                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
+                        )
+                    )
+                ]
+            }
         return {
             'magazines': [
                 marshal(bp, bp_list)
