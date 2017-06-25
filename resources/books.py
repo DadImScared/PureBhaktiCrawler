@@ -15,6 +15,7 @@ def add_book_info(book):
 
 
 def add_snippet(book, query):
+    book.id = book.item_id
     book.title = book.pages.title
     book.indexes = find_indexes(book.content, query)
     book.page = book.pages.page

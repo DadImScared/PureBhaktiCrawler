@@ -12,6 +12,7 @@ from remove_words import remove_stop_words
 def add_magazine_info(magazine):
     magazine.title = magazine.harikatha.title
     magazine.link = magazine.harikatha.link
+    magazine.id = magazine.item_id
     return magazine
 
 
@@ -20,6 +21,7 @@ def add_snippets(magazine, query):
     magazine.link = magazine.harikatha.link
     snippets1, snippets2 = make_snippets(magazine.content, query)
     magazine.content = snippets1
+    magazine.id = magazine.item_id
     return magazine
 
 
@@ -66,7 +68,7 @@ class HariKathaContentSearch(Resource):
             return {
                 'magazines': [
                     marshal(add_snippets(magazine, query), magazine_snippet_field)
-                    for magazine in models.FTSHK.search_magazine(query) if can_make_snippet(magazine.content, query)
+                    for magazine in models.FTSHK.search_magazine(query)
                 ]
             }
         else:

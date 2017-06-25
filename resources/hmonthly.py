@@ -11,10 +11,12 @@ from remove_words import remove_stop_words
 def add_magazine_info(magazine):
     magazine.title = magazine.hmonthly.title
     magazine.link = magazine.hmonthly.link
+    magazine.id = magazine.item_id
     return magazine
 
 
 def add_snippets(magazine, query):
+    magazine.id = magazine.item_id
     magazine.title = magazine.hmonthly.title
     magazine.link = magazine.hmonthly.link
     magazine.content, x = make_snippets(magazine.content, query)
@@ -64,7 +66,7 @@ class HarmonistMonthlyContentSearch(Resource):
             return {
                 'magazines': [
                     marshal(add_snippets(magazine, query), magazine_snippet_field)
-                    for magazine in models.FTSHM.search_magazine(query) if can_make_snippet(magazine.content, query)
+                    for magazine in models.FTSHM.search_magazine(query)
                     ]
             }
         else:

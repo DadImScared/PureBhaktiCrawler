@@ -40,4 +40,4 @@ def hello_world(resource=None):
     return current_app.send_static_file('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

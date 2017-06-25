@@ -22,6 +22,7 @@ book_content_field = {
 }
 
 book_snippet_field = {
+    'id': fields.Integer,
     'title': fields.String,
     'page': fields.Integer,
     'content': fields.String,
@@ -29,12 +30,14 @@ book_snippet_field = {
 }
 
 magazine_search_field = {
+    'id': fields.Integer,
     'link': fields.String,
     'title': fields.String,
     'content': fields.String
 }
 
 magazine_snippet_field = {
+    'id': fields.Integer,
     'link': fields.String,
     'title': fields.String,
     'content': fields.List(fields.String)

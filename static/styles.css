@@ -1,3 +1,23 @@
+/*html, body {*/
+    /*margin: 0;*/
+    /*padding: 0;*/
+    /*height: 100%;*/
+/*}*/
+
+html {
+    background-color: #1B4965;
+}
+
+html, body, #app, #app>div {
+  height: calc(100vh - 54px);
+}
+
+*, *:before, *:after {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
 .main-body {
     background: url("http://purebhakti.tv/pics/flat%2C800x800%2C075%2Ct.u1.jpg") no-repeat ;
     background-size: cover;
@@ -38,13 +58,30 @@
     z-index:1;
 }
 
+.result-info {
+    background-color: #62B6CB;
+    border: none;
+    color: white;
+    border-radius: 25px;
+}
+
+.result-info:hover {
+    background-color: white;
+    color: #62B6CB;
+}
+
 .break-line {
     word-wrap: break-word;
 }
 
 .child-results {
-    margin-top: 4rem
+    margin-top: 4rem;
+    margin-bottom: 24px;
 }
+
+/*#app {*/
+    /*height: 100%;*/
+/*}*/
 
 .v-title-list {
     height: 56px;
@@ -93,6 +130,178 @@
     width: 50vw;
 }
 
+.volume-box {
+    width: 40vw;
+}
+
+.audio-slider {
+    width: 200px;
+}
+
+.audio-container {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+#audio-player {
+    background-color: #1B4965;
+    padding: 7px;
+    border: solid 2px #62B6CB;
+    border-radius: 5px;
+}
+
+#audio-close-button {
+    position: relative;
+    top: .66em;
+    border-radius: 25px;
+}
+
+#audio-volume-icon {
+    background-color: transparent;
+    border: none;
+    border-radius: 25px;
+}
+
+#lg-audio-player-info {
+    background-color: #5FA8D3;
+    border-radius: 25px;
+    border: none;
+    color: #CAE9FF;
+}
+
+#audio-volume-icon:focus {
+    border: none;
+    box-shadow: none;
+}
+
+.player-buttons {
+    border-radius: 25px;
+    background-color: #5FA8D3;
+    border: none;
+    color: white;
+}
+
+.player-buttons:hover {
+    background-color: white;
+    color: #5FA8D3;
+}
+
+ul#list-id li {
+    background-color: #CAE9FF;
+}
+
+#audio-player-info {
+    position: relative;
+    top: .66em;
+    border-radius: 25px;
+    color: #CAE9FF;
+
+}
+
+#audio-slider {
+    padding: 0;
+}
+
+.fa-volume-off {
+
+}
+
+.no-vis {
+    visibility: hidden;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  margin: 2.8px 0;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 11.4px;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: rgba(48, 113, 169, 0.78);
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 0.9px 0.9px 1px #000031, 0px 0px 0.9px #00004b;
+  border: 1.8px solid #00001e;
+  height: 17px;
+  width: 27px;
+  border-radius: 18px;
+  background: #ebffff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -3px;
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: rgba(54, 126, 189, 0.78);
+}
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 11.4px;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: rgba(48, 113, 169, 0.78);
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+}
+input[type=range]::-moz-range-thumb {
+  box-shadow: 0.9px 0.9px 1px #000031, 0px 0px 0.9px #00004b;
+  border: 1.8px solid #00001e;
+  height: 17px;
+  width: 27px;
+  border-radius: 18px;
+  background: #ebffff;
+  cursor: pointer;
+}
+input[type=range]::-ms-track {
+  width: 100%;
+  height: 11.4px;
+  cursor: pointer;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+input[type=range]::-ms-fill-lower {
+  background: rgba(42, 100, 149, 0.78);
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+input[type=range]::-ms-fill-upper {
+  background: rgba(48, 113, 169, 0.78);
+  border: 0.2px solid #010101;
+  border-radius: 2.6px;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+}
+input[type=range]::-ms-thumb {
+  box-shadow: 0.9px 0.9px 1px #000031, 0px 0px 0.9px #00004b;
+  border: 1.8px solid #00001e;
+  height: 17px;
+  width: 27px;
+  border-radius: 18px;
+  background: #ebffff;
+  cursor: pointer;
+  height: 11.4px;
+}
+input[type=range]:focus::-ms-fill-lower {
+  background: rgba(48, 113, 169, 0.78);
+}
+input[type=range]:focus::-ms-fill-upper {
+  background: rgba(54, 126, 189, 0.78);
+}
+
+
+
+
+
+
 /*.small-video-player {*/
     /*position: fixed;*/
     /*top: 250px;*/
@@ -101,6 +310,7 @@
     /*height: 300px;*/
     /*z-index: 1099;*/
 /*}*/
+
 
 @media screen and (min-width: 360px) {
     .my-box {
