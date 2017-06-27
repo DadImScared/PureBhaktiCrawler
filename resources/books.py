@@ -1,5 +1,5 @@
 
-from flask import Blueprint, abort
+from flask import Blueprint, abort, request
 
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
@@ -26,6 +26,7 @@ def add_snippet(book, query):
 
 class Books(Resource):
     def get(self):
+        print(request.headers)
         return {
             'books': [
                 marshal(book, book_field)
