@@ -64,13 +64,14 @@ def get_page(args):
 
 
 def paginate_amount(num):
+    def_num = 25
     if not num:
-        page_by = 50
+        page_by = def_num
     else:
         if num > 50 <= 1000:
             page_by = num
         else:
-            page_by = 50
+            page_by = def_num
     return page_by
 
 

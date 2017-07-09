@@ -46,7 +46,6 @@ class HariKathaList(BaseResource):
 
 class HariKathaSearch(BaseResource):
     def get(self, query):
-        print(query)
         args = self.reqparse.parse_args()
         page_query, next_page = paginate(
             select_query=get_query(models.HariKatha, query),
