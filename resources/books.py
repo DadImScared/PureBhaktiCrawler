@@ -1,9 +1,11 @@
 
-from flask import Blueprint, abort, request
-
+from flask import Blueprint, abort, request, url_for
+import math
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
+from playhouse.flask_utils import PaginatedQuery
 import models
 from resources.api_fields import book_field, book_search_field, book_snippet_field
+from resources.utils import paginate, BaseResource, get_query
 from make_snippets import make_snippets, can_make_snippet, find_indexes
 from remove_words import remove_stop_words
 
@@ -23,56 +25,55 @@ def add_snippet(book, query):
     return book
 
 
-
-class Books(Resource):
+class Books(BaseResource):
     def get(self):
-        print(request.headers)
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=models.Book.select(),
+            next_url='books.books',
+            **args
+        )
         return {
-            'books': [
+            'data': [
                 marshal(book, book_field)
-                for book in models.Book.select()
-            ]
+                for book in page_query.get_object_list()
+            ],
+            'nextPage': next_page
         }
 
 
-class BookSearch(Resource):
-
+class BookSearch(BaseResource):
     def get(self, query):
-        print(query)
-        if len(query.split(" ")) > 1:
-            return {
-                'books': [
-                    marshal(book, book_field)
-                    for book in models.Book.select().where(
-                        models.Book.title.regexp(r"[-\s_]+".join(remove_stop_words(query.lower().split(" "))))
-                    )
-                ]
-            }
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=get_query(models.Book, query),
+            next_url='books.search',
+            **args,
+        )
         return {
-            'books': [
+            'data': [
                 marshal(book, book_field)
-                for book in models.Book.select().where(models.Book.title.contains(query))
-                ]
+                for book in page_query.get_object_list()
+            ],
+            'nextPage': next_page
         }
 
 
-class BookContentSearch(Resource):
+class BookContentSearch(BaseResource):
     def get(self, query):
-        # parser = reqparse.RequestParser()
-        # parser.add_argument('limit')
-        # args = parser.parse_args()
-        # if args['limit']:
-        #     return {
-        #         'books': [
-        #             marshal(add_snippet(book, query), book_snippet_field)
-        #             for book in models.FTSBookPage.search_pages(query).limit(int(args["limit"]))
-        #             ]
-        #     }
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=get_query(models.FTSBookPage, query),
+            next_url='books.content_search',
+            query=query,
+            **args
+        )
         return {
-            'books': [
+            'data': [
                 marshal(add_snippet(book, query), book_snippet_field)
-                for book in models.FTSBookPage.search_pages(query)
-            ]
+                for book in page_query.get_object_list()
+            ],
+            "nextPage": next_page
         }
 
 book_api = Blueprint('resources.books', __name__)
@@ -85,10 +86,10 @@ api.add_resource(
 api.add_resource(
     BookSearch,
     '/search/books/<query>',
-    endpoint='booksearch'
+    endpoint='search'
 )
 api.add_resource(
     BookContentSearch,
     '/booksearch/<query>',
-    endpoint='book_content_search'
+    endpoint='content_search'
 )

@@ -1,6 +1,6 @@
 
 from peewee import *
-from playhouse.sqlite_ext import *
+from playhouse.sqlite_ext import FTSModel, SqliteExtDatabase
 from playhouse.flask_utils import PaginatedQuery
 import os
 

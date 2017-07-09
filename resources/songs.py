@@ -1,43 +1,68 @@
 
-from flask import Blueprint
+from flask import Blueprint, url_for
+from functools import wraps
 
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
+from playhouse.flask_utils import PaginatedQuery
 from resources.api_fields import song_field
+from resources.utils import paginate, BaseResource, get_query
 from remove_words import remove_stop_words
 
 
-class SongList(Resource):
-    def get(self):
+# def paginate_query(f):
+#     @wraps(f)
+#     def wrapper(*args, **kwargs):
+#         parser = reqparse.RequestParser()
+#         parser.add_argument('page', type=int)
+#         params = parser.parse_args()
+#         kwargs["args"] = params
+#         return f(*args, **kwargs)
+#
+#     return wrapper
+
+
+class SongList(BaseResource):
+    def get(self, query=None):
+        args = self.reqparse.parse_args()
+        print(args)
+        page_query, next_page = paginate(
+            select_query=models.Song.select(),
+            next_url='songs.songs',
+            **args
+        )
         return {
-            'songs': [
+            'data': [
                 marshal(song, song_field)
-                for song in models.Song.select()
-            ]
+                for song in page_query.get_object_list()
+            ],
+            "nextPage": next_page
         }
 
 
-class SongSearch(Resource):
+class SongSearch(BaseResource):
     def get(self, query):
-        if len(query.split(" ")) > 1:
-            return {
-                'songs': [
-                    marshal(song, song_field)
-                    for song in models.Song.select().where(
-                        models.Song.title.regexp(
-                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
-                        )
-                    )
-                ]
-            }
+        parse_copy = self.reqparse.copy()
+        parse_copy.add_argument('snippets')
+        args = parse_copy.parse_args()
+
+        search_query = get_query(models.Song, query)
+
+        page_query, next_page = paginate(
+            select_query=search_query,
+            next_url='songs.search_songs',
+            query=query,
+            **args
+        )
+
         return {
-            'songs': [
+            'data': [
                 marshal(song, song_field)
-                for song in models.Song.select().where(
-                    models.Song.title.contains(query)
-                )
-            ]
+                for song in page_query.get_object_list()
+            ],
+            "nextPage": next_page
         }
+
 
 song_api = Blueprint('resources.songs', __name__)
 api = Api(song_api)

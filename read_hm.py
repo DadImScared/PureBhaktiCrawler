@@ -17,7 +17,7 @@ def index_content():
             soup = bs(urlopen(req), 'html.parser')
         except UnicodeEncodeError:
             continue
-        article = soup.find('article', class_='item-pagehmonthly')
+        article = soup.find('div', class_='item-pagehmonthly')
         content = article.find_all('p')
         models.FTSHM.create(item_id=item.id, content=" ".join([x.get_text() for x in content]))
         item.indexed = True

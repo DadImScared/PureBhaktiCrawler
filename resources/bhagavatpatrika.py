@@ -4,6 +4,7 @@ from flask import Blueprint, abort
 from flask_restful import (Resource, Api, fields, marshal, reqparse, marshal_with)
 import models
 from resources.api_fields import bp_list
+from resources.utils import paginate, BaseResource, get_query
 from remove_words import remove_stop_words
 
 
@@ -16,16 +17,19 @@ def bp_or_404(bp_name):
         return bp
 
 
-class BhagavatPatrikaList(Resource):
-
+class BhagavatPatrikaList(BaseResource):
     def get(self):
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=models.BhagavatPatrika,
+            next_url='bhagavatpatrika.bhagavatpatrikas',
+            **args
+        )
         return {
-            'magazines': [
+            'nextPage': next_page,
+            'data': [
                 marshal(bp, bp_list)
-                for bp in models.BhagavatPatrika.select().order_by(
-                    models.BhagavatPatrika.year.desc(),
-                    models.BhagavatPatrika.issue.asc()
-                )
+                for bp in page_query.get_object_list()
             ]
         }
 
@@ -38,30 +42,25 @@ class BhagavatPatrika(Resource):
         return models.BhagavatPatrika.get(models.BhagavatPatrika.title==title)
 
 
-class BhagavatPatrikaSearch(Resource):
+class BhagavatPatrikaSearch(BaseResource):
     def get(self, query):
-        if len(query.split(" ")) > 1:
-            return {
-                'magazines': [
-                    marshal(bp, bp_list)
-                    for bp in models.BhagavatPatrika.select().where(
-                        models.BhagavatPatrika.title.regexp(
-                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
-                        )
-                    )
-                ]
-            }
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=get_query(models.BhagavatPatrika, query),
+            next_url='bhagavatpatrika.search',
+            query=query,
+            **args
+        )
         return {
-            'magazines': [
+            'nextPage': next_page,
+            'data': [
                 marshal(bp, bp_list)
-                for bp in models.BhagavatPatrika.select().where(
-                    models.BhagavatPatrika.title.contains(query)
-                )
+                for bp in page_query.get_object_list()
             ]
         }
 
 
-bp_api = Blueprint('resources.bhagavapatrika', __name__)
+bp_api = Blueprint('resources.bhagavatpatrika', __name__)
 api = Api(bp_api)
 api.add_resource(
     BhagavatPatrikaList,
@@ -76,5 +75,5 @@ api.add_resource(
 api.add_resource(
     BhagavatPatrikaSearch,
     '/search/bhagavatpatrika/<query>',
-    endpoint='searchbhagavatpatrika'
+    endpoint='search'
 )

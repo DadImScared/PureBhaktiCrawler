@@ -66,9 +66,9 @@ def collect_indexes(first_word, last_word, content_lst):
     l_indexes = set()
 
     for index, word in enumerate(content_lst):
-        if word in first_word:
+        if first_word.lower() in word.lower() :
             f_indexes.add(index)
-        if word in last_word:
+        if last_word.lower() in word.lower() :
             l_indexes.add(index)
     return f_indexes, l_indexes
 
@@ -79,11 +79,10 @@ def collect_all_indexes(query, content_lst):
 
     for index, element in enumerate(content_lst):
         for word in search_words:
-            if word in element:
+            if word.lower() in element.lower():
                 indexes.add(index)
         # if element.lower() in search_words:
         #     indexes.add(index)
-
     return sorted([i for i in indexes])
 
 
@@ -99,58 +98,25 @@ def find_phrase(first_word, last_word, query_len, content_lst):
 
 
 def make_snippets(content, query, word_sep=50, display_content=None):
-    search_content = content.split()
-    content_lst = display_content.split() if display_content else content.split()
+    search_content = content.split(" ")
+    content_lst = display_content.split(" ") if display_content else content.split()
     indexes = []
     if len(query.split(" ")) > 1:
         if re.findall(query, content):
-
             search_words = query.split(" ")
             indexes = find_phrase(search_words[0], search_words[-1], len(search_words), search_content)
         else:
             indexes = collect_all_indexes(query, search_content)
+
     else:
         indexes = find_indexes(content, query)
     if not indexes:
+
         return
     solo_snippets, group_snippets = sort_indexes(indexes, word_sep)
     complete_snippets = []
     group_content = []
     search_snippets = []
-    # for index in solo_snippets:
-    #     if index-word_sep > 0:
-    #         if index < len(content_lst)-word_sep:
-    #             complete_snippets.append([" ".join(content_lst[index - word_sep:index+word_sep]),
-    #                                       find_indexes(" ".join(content_lst[index - word_sep:index+word_sep]), query)])
-    #         else:
-    #             complete_snippets.append([" ".join(content_lst[index - word_sep:]),
-    #                                       find_indexes(" ".join(content_lst[index - word_sep:]),query)])
-    #     else:
-    #         if index < len(content_lst)-word_sep:
-    #             complete_snippets.append([" ".join(content_lst[:index+word_sep]),
-    #                                       find_indexes(" ".join(content_lst[:index+word_sep]), query)])
-    #         else:
-    #             complete_snippets.append([" ".join(content_lst[:index+(len(content_lst)-index)]),
-    #                                       find_indexes(" ".join(content_lst[:index+(len(content_lst)-index)]), query)])
-    #         # complete_snippets.append(" ".join(apart[index-50:]))
-    # for group in group_snippets:
-    #     if group[0]-word_sep > 0:
-    #         if group[-1] < len(content_lst)-word_sep:
-    #             complete_snippets.append([" ".join(content_lst[group[0]-word_sep:group[-1]+word_sep]),
-    #                                       find_indexes(" ".join(content_lst[group[0]-word_sep:group[-1]+word_sep]),
-    #                                                    query)])
-    #         else:
-    #             complete_snippets.append([" ".join(content_lst[group[0]-word_sep:]),
-    #                                       find_indexes(" ".join(content_lst[group[0]-word_sep:]), query)])
-    #     else:
-    #         if group[-1] < len(content_lst)-word_sep:
-    #             complete_snippets.append([" ".join(content_lst[:group[-1]+word_sep]),
-    #                                       find_indexes(" ".join(content_lst[:group[-1]+word_sep]), query)])
-    #
-    #         else:
-    #             complete_snippets.append([" ".join(content_lst[:group[-1]+(len(content_lst)-group[-1])]),
-    #                                       find_indexes(" ".join(content_lst[:group[-1]+(len(content_lst)-group[-1])]),
-    #                                                    query)])
 
     for index in solo_snippets:
         if index-word_sep > 0:

@@ -6,6 +6,7 @@ import requests
 import models
 from resources.api_fields import hk_field, magazine_search_field, magazine_snippet_field
 from make_snippets import make_snippets, can_make_snippet
+from resources.utils import paginate, BaseResource, get_query, paginate_amount, get_page
 from remove_words import remove_stop_words
 
 
@@ -21,63 +22,123 @@ def add_snippets(magazine, query):
     magazine.link = magazine.harikatha.link
     snippets1, snippets2 = make_snippets(magazine.content, query)
     magazine.content = snippets1
+    # magazine.content = magazine.content.split(" ")
     magazine.id = magazine.item_id
     return magazine
 
 
-class HariKathaList(Resource):
+class HariKathaList(BaseResource):
     def get(self):
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=models.HariKatha,
+            next_url='harikatha.harikathas',
+            **args
+        )
         return {
-            'magazines': [
+            'data': [
                 marshal(magazine, hk_field)
-                for magazine in models.HariKatha.select()
-            ]
+                for magazine in page_query.get_object_list()
+            ],
+            'nextPage': next_page
         }
 
 
-class HariKathaSearch(Resource):
+class HariKathaSearch(BaseResource):
     def get(self, query):
-        if len(query.split(" ")) > 1:
-            return {
-                'magazines': [
-                    marshal(magazine, hk_field)
-                    for magazine in models.HariKatha.select().where(
-                        models.HariKatha.title.regexp(
-                            r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
-                        )
-                    )
-                ]
-            }
+        print(query)
+        args = self.reqparse.parse_args()
+        page_query, next_page = paginate(
+            select_query=get_query(models.HariKatha, query),
+            next_url='harikatha.search_hk',
+            query=query,
+            **args
+        )
         return {
-            'magazines': [
+            'data': [
                 marshal(magazine, hk_field)
-                for magazine in models.HariKatha.select().where(
-                    models.HariKatha.title.contains(query)
-                )
-            ]
+                for magazine in page_query.get_object_list()
+            ],
+            "nextPage": next_page
         }
+        # if len(query.split(" ")) > 1:
+        #     return {
+        #         'magazines': [
+        #             marshal(magazine, hk_field)
+        #             for magazine in models.HariKatha.select().where(
+        #                 models.HariKatha.title.regexp(
+        #                     r"[-\s_]+".join(remove_stop_words(query.lower().split(" ")))
+        #                 )
+        #             )
+        #         ]
+        #     }
+        # return {
+        #     'magazines': [
+        #         marshal(magazine, hk_field)
+        #         for magazine in models.HariKatha.select().where(
+        #             models.HariKatha.title.contains(query)
+        #         )
+        #     ]
+        # }
 
 
-class HariKathaContentSearch(Resource):
+class HariKathaContentSearch(BaseResource):
     def get(self, query):
-        parser = reqparse.RequestParser()
-        parser.add_argument('snippets')
-        args = parser.parse_args()
+        parse_copy = self.reqparse.copy()
+        parse_copy.add_argument('snippets')
+        args = parse_copy.parse_args()
         snippet = args.get('snippets')
+        page_query, next_page = paginate(
+            select_query=get_query(models.FTSHK, query),
+            next_url='harikatha.hk_search_content',
+            query=query,
+            **args
+        )
+        return {
+            'data': [
+                # marshal(
+                #     add_snippets(magazine, query) if snippet else add_magazine_info(magazine),
+                #     magazine_snippet_field if snippet else magazine_search_field)
+                marshal(add_snippets(magazine, query), magazine_snippet_field) if snippet
+                else marshal(add_magazine_info(magazine), magazine_search_field)
+                for magazine in page_query.get_object_list()
+            ],
+            "nextPage": next_page
+        }
         if snippet:
             return {
-                'magazines': [
+                'data': [
                     marshal(add_snippets(magazine, query), magazine_snippet_field)
-                    for magazine in models.FTSHK.search_magazine(query)
-                ]
+                    for magazine in page_query.get_object_list()
+                ],
+                "nextPage": next_page
             }
-        else:
-            return {
-                'magazines': [
-                    marshal(add_magazine_info(magazine), magazine_search_field)
-                    for magazine in models.FTSHK.search_magazine(query)
-                ]
-            }
+        # else:
+        #     return {
+        #         'data': [
+        #             marshal(add_magazine_info(magazine), magazine_search_field)
+        #             for magazine in page_query.get_object_list()
+        #         ],
+        #         "nextPage": next_page
+        #     }
+        # parser = reqparse.RequestParser()
+        # parser.add_argument('snippets')
+        # args = parser.parse_args()
+        # snippet = args.get('snippets')
+        # if snippet:
+        #     return {
+        #         'magazines': [
+        #             marshal(add_snippets(magazine, query), magazine_snippet_field)
+        #             for magazine in models.FTSHK.search_magazine(query)
+        #         ]
+        #     }
+        # else:
+        #     return {
+        #         'magazines': [
+        #             marshal(add_magazine_info(magazine), magazine_search_field)
+        #             for magazine in models.FTSHK.search_magazine(query)
+        #         ]
+        #     }
 
 hk_api = Blueprint('resources.harikatha', __name__)
 api = Api(hk_api)
