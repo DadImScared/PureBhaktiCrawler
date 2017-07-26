@@ -2,7 +2,12 @@
 from peewee import *
 from playhouse.sqlite_ext import FTSModel, SqliteExtDatabase
 from playhouse.flask_utils import PaginatedQuery
+from flask_bcrypt import check_password_hash, generate_password_hash
 import os
+import datetime
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
+                          BadSignature, SignatureExpired)
+import config
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 DATABASE = SqliteExtDatabase('{}{}links.db'.format(dir_path, os.path.sep))
@@ -456,6 +461,220 @@ class Song(Model):
             return None
 
 
+class User(Model):
+    """User class for database"""
+
+    #: CharField unique email for user
+    email = CharField(unique=True, null=True)
+
+    #: CharField password for user
+    password = CharField(null=True)
+
+    #: DateTimeField joined_at
+    joined_at = DateTimeField(default=datetime.datetime.now)
+
+    #: BooleanField email_confirmed default set to False
+    email_confirmed = BooleanField(default=False)
+
+    #: CharField user_id for google or facebook user
+    user_id = CharField(null=True)
+
+    #: CharField user_type indicating where the user registered from
+    #: Default to ("home", which means they registered through us)
+    #: Other options include "facebook", and "google"
+    user_type = CharField(default="home")
+
+    class Meta:
+        database = DATABASE
+
+    @classmethod
+    def create_user(cls, email, password):
+        """Creates User object and returns created object
+
+        :param str email: Unique email for user
+        :param str password: Password for user
+        :raise ValueError: User already exists
+        :return: return User object
+        """
+        try:
+            return cls.create(
+                email=email,
+                password=generate_password_hash(password)
+            )
+        except IntegrityError:
+            raise ValueError("User already exists")
+
+    @classmethod
+    def get_user(cls, email):
+        """Return User object if User exists
+
+        :param str email: Email to user
+        :return: User object if match else None
+        """
+        try:
+            return cls.get(cls.email == email)
+        except DoesNotExist:
+            return None
+
+    def verify_password(self, password):
+        """Return True if password matches else False"""
+        return check_password_hash(self.password, password)
+
+    def generate_auth_token(self, expires=3600):
+        """Return auth token"""
+        serializer = Serializer(config.SECRET_KEY, expires_in=expires)
+        return serializer.dumps({'id': self.id})
+
+    @staticmethod
+    def verify_auth_token(token):
+        """Verify token and return User object
+
+        :param token: Token to identify user
+        :except SignatureExpired, BadSignature: return None
+        :return: User object if verified else None
+        """
+        serializer = Serializer(config.SECRET_KEY)
+        try:
+            data = serializer.loads(token)
+        except (SignatureExpired, BadSignature):
+            return None
+        else:
+            user = User.get(User.id == data['id'])
+            return user
+
+    def get_playlists(self):
+        """Return list of Playlist objects related to User instance"""
+        return Playlist.select().where(Playlist.user == self)
+
+    def get_playlist(self, name):
+        """return Playlist object that matches name"""
+        try:
+            return Playlist.get(user=self, name=name)
+        except DoesNotExist:
+            raise ValueError("Playlist does not exist")
+
+
+class Playlist(Model):
+    """Playlist class for database"""
+    user = ForeignKeyField(rel_model=User, related_name="to_user")
+    name = CharField()
+    created_at = DateTimeField(default=datetime.datetime.now)
+    updated_at = DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        database = DATABASE
+
+    @classmethod
+    def create_playlist(cls, user, name):
+        """Creates and returns Playlist object
+
+        :param user: User object
+        :param str name: Name of Playlist object
+        :return: Playlist object
+        """
+        return cls.create(user=user, name=name)
+
+    def add_item(self, item, item_type):
+        """Add and return PlaylistItem object
+
+        :param item: Song or Lecture object to add to Playlist
+        :param item_type: Item type song or lecture
+        :return: PlaylistItem object
+        """
+        if item_type == "song":
+            return PlaylistItem.create_item(playlist=self, song=item)
+        else:
+            return PlaylistItem.create_item(playlist=self, lecture=item)
+
+    def get_items(self):
+        """Return list of PlaylistItem objects related to Playlist instance"""
+        return PlaylistItem.select().where(PlaylistItem.playlist == self).order_by(PlaylistItem.item_order.asc())
+
+    def get_item(self, index):
+        """Return PlaylistItem where item_order is equal to index"""
+        try:
+            return PlaylistItem.get(
+                (PlaylistItem.playlist == self) &
+                (PlaylistItem.item_order == index)
+            )
+        except DoesNotExist:
+            raise ValueError("Item does not exist")
+
+    def move_item(self, old_index, new_index):
+        """Changes item_order of PlaylistItem from old_index to new_index
+
+        :param int old_index: Current item_order of item on playlist
+        :param int new_index: New item_order of playlist item
+        :return: PlaylistItem object with new item_order
+        """
+        if new_index > self.get_items().count():
+            raise ValueError("New index out of range")
+        try:
+            current_item = self.get_item(old_index)
+        except ValueError as e:
+            raise e
+        else:
+            if new_index < old_index:
+                # move item up list example old_index = 7 and new_index = 2
+                PlaylistItem.update(item_order=PlaylistItem.item_order+1).where(
+                    (PlaylistItem.item_order < old_index) &
+                    (PlaylistItem.item_order >= new_index)
+                ).execute()
+            else:
+                # move item down list
+                PlaylistItem.update(item_order=PlaylistItem.item_order-1).where(
+                    (PlaylistItem.item_order > old_index) &
+                    (PlaylistItem.item_order <= new_index)
+                ).execute()
+            current_item.item_order = new_index
+            current_item.save()
+            return current_item
+
+    def delete_item(self, index):
+        """Delete item from Playlist where PlaylistItem.item_order == index"""
+        try:
+            return self.get_item(index).delete_instance()
+        except ValueError as e:
+            raise e
+
+
+class PlaylistItem(Model):
+    """PlaylistItem class for database"""
+    playlist = ForeignKeyField(rel_model=Playlist, related_name="to_playlist")
+
+    #: Song object to add to playlist not required if Lecture is assigned
+    song = ForeignKeyField(rel_model=Song, related_name="song_item", null=True)
+
+    #: Lecture object to add to playlist not required if Song is assigned
+    lecture = ForeignKeyField(rel_model=AudioLecture, related_name="lecture_item", null=True)
+
+    item_order = IntegerField()
+
+    class Meta:
+        database = DATABASE
+        order_by = ('item_order',)
+
+    @classmethod
+    def create_item(cls, playlist, song=None, lecture=None):
+        """Creates and returns PlayListItem
+
+        Only create_item with a song or a lecture not both.
+        if you create_item with both a song and object a PlaylistItem will be created with the song and not the lecture
+        :param playlist: Playlist to add song or lecture to
+        :param song: Song to add to playlist. Required if Lecture is not assigned
+        :param lecture: Lecture to add to playlist. Required if Song is not assigned
+        :raise ValueError: If song or lecture is not included. Always include one or the other
+        :return: PlayListItem object
+        """
+        if not song and not lecture:
+            raise ValueError("song or lecture required")
+        else:
+            if song:
+                return cls.create(playlist=playlist, song=song, item_order=playlist.get_items().count())
+            else:
+                return cls.create(playlist=playlist, lecture=lecture, item_order=playlist.get_items().count())
+
+
 def all_records():
     records = {}
     books = Book.select()
@@ -490,5 +709,5 @@ def initialize():
     DATABASE.connect()
     DATABASE.create_tables([Movie, Book, HarmonistMagazine, BhagavatPatrika, HariKatha, HarmonistMonthly,
                             AudioLecture, Song, FTSBook, FTSHK, FTSHM, BookPage, FTSBookPage,
-                            BookContent, FTSFullBook], safe=True)
+                            BookContent, FTSFullBook, User, Playlist, PlaylistItem], safe=True)
     DATABASE.close()

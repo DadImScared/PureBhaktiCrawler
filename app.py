@@ -14,9 +14,13 @@ from resources.lectures import lectures_api
 from resources.movies import movie_api
 from resources.songs import song_api
 from resources.all_results import all_api
+from resources.users import user_api
+from resources.playlists import playlist_api
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.register_blueprint(playlist_api, url_prefix="/api/v1")
+app.register_blueprint(user_api, url_prefix='/api/v1')
 app.register_blueprint(bp_api, url_prefix='/api/v1')
 app.register_blueprint(book_api, url_prefix='/api/v1')
 app.register_blueprint(hk_api, url_prefix='/api/v1')
