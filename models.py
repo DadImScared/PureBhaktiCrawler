@@ -7,6 +7,7 @@ import os
 import datetime
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
                           BadSignature, SignatureExpired)
+import uuid
 import config
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -546,10 +547,17 @@ class User(Model):
         """Return list of Playlist objects related to User instance"""
         return Playlist.select().where(Playlist.user == self)
 
-    def get_playlist(self, name):
+    def get_playlist_with_name(self, name):
         """return Playlist object that matches name"""
         try:
             return Playlist.get(user=self, name=name)
+        except DoesNotExist:
+            raise ValueError("Playlist does not exist")
+
+    def get_playlist(self, list_id):
+        """Return Playlist object that matches Playlist playlist_id"""
+        try:
+            return Playlist.get(user=self, playlist_id=list_id)
         except DoesNotExist:
             raise ValueError("Playlist does not exist")
 
@@ -560,19 +568,32 @@ class Playlist(Model):
     name = CharField()
     created_at = DateTimeField(default=datetime.datetime.now)
     updated_at = DateTimeField(default=datetime.datetime.now)
+    playlist_id = CharField(default=uuid.uuid4, unique=True)
 
     class Meta:
         database = DATABASE
 
     @classmethod
-    def create_playlist(cls, user, name):
+    def create_playlist(cls, user, name, **kwargs):
         """Creates and returns Playlist object
 
         :param user: User object
         :param str name: Name of Playlist object
         :return: Playlist object
         """
-        return cls.create(user=user, name=name)
+        # move first try out of loop and move loop into else of first try for efficiency made 10:49pm 7/31/2017
+        # if this comment is not removed by 8/2/2017 something is wrong
+        playlist = None
+        while not playlist:
+            try:
+                playlist = cls.create(user=user, name=name, **kwargs)
+            except IntegrityError:
+                try:
+                    playlist = cls.create(user=user, name=name)
+                except IntegrityError:
+                    continue
+        else:
+            return playlist
 
     def add_item(self, item, item_type):
         """Add and return PlaylistItem object
@@ -581,6 +602,8 @@ class Playlist(Model):
         :param item_type: Item type song or lecture
         :return: PlaylistItem object
         """
+        self.updated_at = datetime.datetime.now()
+        self.save()
         if item_type == "song":
             return PlaylistItem.create_item(playlist=self, song=item)
         else:
@@ -614,28 +637,60 @@ class Playlist(Model):
         except ValueError as e:
             raise e
         else:
+            if new_index == old_index:
+                return self.get_item(new_index)
             if new_index < old_index:
                 # move item up list example old_index = 7 and new_index = 2
                 PlaylistItem.update(item_order=PlaylistItem.item_order+1).where(
+                    (PlaylistItem.playlist == self) &
                     (PlaylistItem.item_order < old_index) &
                     (PlaylistItem.item_order >= new_index)
                 ).execute()
             else:
                 # move item down list
                 PlaylistItem.update(item_order=PlaylistItem.item_order-1).where(
+                    (PlaylistItem.playlist == self) &
                     (PlaylistItem.item_order > old_index) &
                     (PlaylistItem.item_order <= new_index)
                 ).execute()
             current_item.item_order = new_index
             current_item.save()
+            self.updated_at = datetime.datetime.now()
+            self.save()
             return current_item
 
     def delete_item(self, index):
         """Delete item from Playlist where PlaylistItem.item_order == index"""
         try:
-            return self.get_item(index).delete_instance()
+            self.get_item(index).delete_instance()
         except ValueError as e:
             raise e
+        else:
+            PlaylistItem.update(item_order=PlaylistItem.item_order-1).where(
+                (PlaylistItem.playlist == self) & (PlaylistItem.item_order > index)
+            ).execute()
+            self.updated_at = datetime.datetime.now()
+            self.save()
+            return True
+
+    def has_item(self, title, item_type):
+        """Return True if playlist has item else False"""
+        # fix function
+        try:
+            if item_type == "song":
+                item = Song.get(title=title)
+            else:
+                item = AudioLecture.get(title=title)
+        except DoesNotExist:
+            raise ValueError("Song or lecture does not exist")
+        else:
+            try:
+                if item_type == "song":
+                    return True, PlaylistItem.get(playlist=self, song=item).item_order
+                else:
+                    return True, PlaylistItem.get(playlist=self, lecture=item).item_order
+            except DoesNotExist:
+                return False, 0
 
 
 class PlaylistItem(Model):
@@ -666,6 +721,8 @@ class PlaylistItem(Model):
         :raise ValueError: If song or lecture is not included. Always include one or the other
         :return: PlayListItem object
         """
+        playlist.updated_at = datetime.datetime.now()
+        playlist.save()
         if not song and not lecture:
             raise ValueError("song or lecture required")
         else:

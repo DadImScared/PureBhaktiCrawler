@@ -21,11 +21,14 @@ from remove_words import remove_stop_words
 #
 #     return wrapper
 
+def add_type(song):
+    song.type = "song"
+    return song
+
 
 class SongList(BaseResource):
     def get(self, query=None):
         args = self.reqparse.parse_args()
-        print(args)
         page_query, next_page = paginate(
             select_query=models.Song.select(),
             next_url='songs.songs',
@@ -33,7 +36,7 @@ class SongList(BaseResource):
         )
         return {
             'data': [
-                marshal(song, song_field)
+                marshal(add_type(song), song_field)
                 for song in page_query.get_object_list()
             ],
             "nextPage": next_page
@@ -57,7 +60,7 @@ class SongSearch(BaseResource):
 
         return {
             'data': [
-                marshal(song, song_field)
+                marshal(add_type(song), song_field)
                 for song in page_query.get_object_list()
             ],
             "nextPage": next_page

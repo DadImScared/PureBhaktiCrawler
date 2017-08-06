@@ -8,6 +8,11 @@ from auth import auth
 
 import models
 
+
+class CustomDateTime(fields.Raw):
+    def format(self, value):
+        return value.strftime("%D %r")
+
 item_field = {
     "title": fields.String,
     "link": fields.String,
@@ -22,6 +27,15 @@ playlist_names = {
 playlist_field = {
     "name": fields.String,
     "items": fields.List(fields.Nested(item_field)),
+    "playlistId": fields.String(attribute='playlist_id'),
+    "createdAt": CustomDateTime(attribute="created_at"),
+    "updatedAt": CustomDateTime(attribute="updated_at")
+}
+
+playlist_with_item = {
+    "name": fields.String,
+    'hasItem': fields.Boolean,
+    'itemIndex': fields.Integer
 }
 
 
@@ -33,13 +47,13 @@ def add_type(item):
         item.type = "song"
     else:
         item.title = item.lecture.title
-        item.link = item.lecture.title
+        item.link = item.lecture.link
         item.type = "lecture"
     return item
 
 
 def add_items(playlist):
-    """Adds items to Playlist object and return Playlist object"""
+    """Adds items to Playlist object and formats updated_at and created_at datetime fields and return Playlist object"""
     playlist.items = [marshal(add_type(item), item_field) for item in playlist.get_items()]
     return playlist
 
@@ -65,6 +79,11 @@ def get_item(title, item_type):
             raise ValueError("Lecture does not exist")
 
 
+def has_item(playlist, title, item_type):
+    playlist.hasItem, playlist.itemIndex = playlist.has_item(title, item_type)
+    return playlist
+
+
 class Playlists(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -88,35 +107,80 @@ class Playlists(Resource):
 class Playlist(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
+        super().__init__()
+
+    @auth.login_required
+    def get(self, list_id):
+        """Return Playlist object"""
+        try:
+            playlist = g.user.get_playlist(list_id)
+        except ValueError as e:
+            return make_response(jsonify({"message": str(e)}), 404)
+        else:
+            return marshal(add_items(playlist), playlist_field), 200
+
+    @auth.login_required
+    def post(self):
+        """Return Playlist object"""
         self.reqparse.add_argument(
             "name",
             required=True,
             help="Playlist name required",
             location=['json']
         )
-        super().__init__()
-
-    @auth.login_required
-    def post(self):
-        """Return Playlist object"""
         args = self.reqparse.parse_args()
         playlist, created = models.Playlist.get_or_create(user=g.user, name=args["name"].strip())
         if created:
-            return {"message": "Playlist {} created".format(playlist.name)}, 201
+            return marshal(add_items(playlist), playlist_field), 201
         else:
             return make_response(jsonify({"message": "{} already exists".format(playlist.name)}), 409)
 
     @auth.login_required
-    def delete(self):
-        """Delete Playlist instance"""
+    def patch(self, list_id):
+        """Return Playlist object with new name"""
+        self.reqparse.add_argument(
+            "name",
+            required=True,
+            help="Playlist name required",
+            location=['json']
+        )
         args = self.reqparse.parse_args()
+        # check if user has playlist already
         try:
-            playlist = g.user.get_playlist(args["name"])
+            g.user.get_playlist_with_name(args['name'])
+        except ValueError:
+            # else rename playlist
+            try:
+                playlist = g.user.get_playlist(list_id)
+            except ValueError as e:
+                return make_response(jsonify({"message": "Playlist does not exist"}), 404)
+            else:
+                playlist.name = args['name']
+                playlist.save()
+                return marshal(add_items(playlist), playlist_field), 200
+        else:
+            # if they do return 403
+            return make_response(jsonify({"message": "You already have a playlist with this name"}), 409)
+
+    @auth.login_required
+    def delete(self, list_id=None):
+        """Delete Playlist instance"""
+        # self.reqparse.add_argument(
+        #     "name",
+        #     required=True,
+        #     help="Playlist name required",
+        #     location=['json']
+        # )
+        # args = self.reqparse.parse_args()
+        if not list_id:
+            return make_response(jsonify({"message": "Playlist uuid required"}), 400)
+        try:
+            playlist = g.user.get_playlist(list_id)
         except ValueError as e:
             return make_response(jsonify({"message": str(e)}), 404)
         else:
             playlist.delete_instance(recursive=True)
-            return make_response(jsonify({"message": "Playlist deleted!"}), 204)
+            return 200
 
 
 class PlaylistItems(Resource):
@@ -150,6 +214,9 @@ class PlaylistItems(Resource):
         if args["itemType"].lower() not in item_types:
             return make_response(jsonify({"message": "Bad item type"}), 400)
         playlist, _ = models.Playlist.get_or_create(user=g.user, name=args["playlist"])
+        playlist_has_item, _ = playlist.has_item(title=args['itemName'], item_type=args['itemType'])
+        if playlist_has_item:
+            return make_response(jsonify({"message": "Item already on playlist"}), 400)
         try:
             item = get_item(args["itemName"], args["itemType"])
         except ValueError as e:
@@ -161,12 +228,7 @@ class PlaylistItems(Resource):
     @auth.login_required
     def patch(self):
         """Update item_order in PlaylistItem object and return PlaylistItem"""
-        self.reqparse.add_argument(
-            'itemType',
-            required=True,
-            help="Item type required",
-            location=['json']
-        )
+
         self.reqparse.add_argument(
             "oldIndex",
             required=True,
@@ -183,7 +245,7 @@ class PlaylistItems(Resource):
         )
         args = self.reqparse.parse_args()
         try:
-            playlist = g.user.get_playlist(args["playlist"])
+            playlist = g.user.get_playlist_with_name(args["playlist"])
         except ValueError:
             return make_response(jsonify({"message": "Playlist does not exist"}), 404)
         else:
@@ -205,7 +267,7 @@ class PlaylistItems(Resource):
         )
         args = self.reqparse.parse_args()
         try:
-            playlist = g.user.get_playlist(name=args["playlist"])
+            playlist = g.user.get_playlist_with_name(name=args["playlist"])
         except ValueError as e:
             return make_response(jsonify({"message": str(e)}), 404)
         else:
@@ -214,7 +276,29 @@ class PlaylistItems(Resource):
             except ValueError as e:
                 return make_response(jsonify({"message": str(e)}), 404)
             else:
-                return make_response(jsonify({"message": "Item delete from {}".format(playlist.name)}), 204)
+                print(playlist.name)
+                print("deleted")
+                return jsonify({"message": "Item deleted from {} ".format(playlist.name)})
+
+
+class PlaylistsWithItem(Resource):
+    @auth.login_required
+    def get(self, title, item_type):
+        """Return list of objects
+
+        :param str title: Title of Song object or Lecture object
+        :param str item_type: Type of song or lecture
+        :return: List of objects. Example {'name': 'my_playlist', 'hasItem': 'false'}
+        """
+        item_types = ['song', 'lecture']
+        if item_type not in item_types:
+            return make_response(jsonify({"message": "Bad item type"}), 400)
+        return {
+            'playlists': [
+                marshal(has_item(playlist, title, item_type), playlist_with_item)
+                for playlist in g.user.get_playlists()
+            ]
+        }, 200
 
 
 playlist_api = Blueprint('resources.playlists', __name__)
@@ -227,10 +311,16 @@ api.add_resource(
 api.add_resource(
     Playlist,
     '/playlist',
+    '/playlists/<list_id>',
     endpoint="playlist"
 )
 api.add_resource(
     PlaylistItems,
     '/playlist/item',
     endpoint='playlist_item'
+)
+api.add_resource(
+    PlaylistsWithItem,
+    '/playlists/includes/<title>/<item_type>',
+    endpoint='playlist_with_item'
 )

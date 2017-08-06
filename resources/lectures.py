@@ -8,6 +8,11 @@ from resources.utils import paginate, BaseResource, get_query
 from remove_words import remove_stop_words
 
 
+def add_type(lecture):
+    lecture.type = "lecture"
+    return lecture
+
+
 class AudioLectureList(BaseResource):
     def get(self):
         args = self.reqparse.parse_args()
@@ -18,7 +23,7 @@ class AudioLectureList(BaseResource):
         )
         return {
             'data': [
-                marshal(lecture, lecture_field)
+                marshal(add_type(lecture), lecture_field)
                 for lecture in page_query.get_object_list()
             ],
             "nextPage": next_page
@@ -37,7 +42,7 @@ class AudioLectureSearch(BaseResource):
         return {
             'nextPage': next_page,
             'data': [
-                marshal(lecture, lecture_field)
+                marshal(add_type(lecture), lecture_field)
                 for lecture in page_query.get_object_list()
             ]
         }

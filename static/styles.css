@@ -83,6 +83,14 @@ html, body, #app, #app>div, .child-results {
     word-wrap: break-word;
 }
 
+.break-word {
+    white-space: pre-wrap;      /* CSS3 */
+    white-space: -moz-pre-wrap; /* Firefox */
+    white-space: -pre-wrap;     /* Opera <7 */
+    white-space: -o-pre-wrap;   /* Opera 7 */
+    word-break: break-all;
+}
+
 .child-results {
     padding-top: .5em;
     /*margin-bottom: 24px;*/
@@ -195,6 +203,26 @@ html, body, #app, #app>div, .child-results {
     color: #5FA8D3;
 }
 
+.playlist-edit-modal > h4 {
+    width: 100%
+}
+
+.vol-circle {
+    color: rgb(95, 168, 211);
+}
+
+.vol-circle:hover {
+    color: white;
+}
+
+.vol-icon {
+    color: white
+}
+
+.vol-icon {
+    color: rgb(95, 168, 211);
+}
+
 ul#list-id li {
     background-color: #CAE9FF;
 }
@@ -233,6 +261,10 @@ ul#list-id li {
 
 .no-vis {
     visibility: hidden;
+}
+
+.hide-player {
+    display: none;
 }
 
 input[type=range] {

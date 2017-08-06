@@ -71,6 +71,7 @@ song_field = {
     'link': fields.String,
     'title': fields.String,
     'category': fields.String,
+    'type': fields.String,
     'hits': fields.Integer
 }
 
@@ -93,5 +94,6 @@ lecture_field = {
     'link': fields.String,
     'title': fields.String,
     'category': fields.String,
+    'type': fields.String,
     'hits': fields.Integer
 }
