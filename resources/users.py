@@ -5,8 +5,9 @@ from flask_restful import (Resource, Api, reqparse,
                                inputs, fields, marshal,
                                marshal_with, url_for)
 from oauth2client import client, crypt
+from facepy import SignedRequest
 from models import User
-from config import CLIENT_ID
+from config import CLIENT_ID, FB_KEY, FB_CLIENT
 
 
 class Login(Resource):
@@ -45,8 +46,6 @@ class GoogleLogin(Resource):
         """Post method for GoogleLogin resource"""
         args = self.reqparse.parse_args()
         token = args['id_token']
-        print("token")
-        print(token)
         try:
             idinfo = client.verify_id_token(token, CLIENT_ID)
 
@@ -73,6 +72,23 @@ class GoogleLogin(Resource):
             }), 200)
 
 
+class FacebookLogin(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('signed_req', required=True, help="Signed request required", location="json")
+        super().__init__()
+
+    def post(self):
+        args = self.reqparse.parse_args()
+        signed_request_data = SignedRequest(args['signed_req'], FB_KEY, application_id=FB_CLIENT)
+        # print(signed_request_data.user.id)
+        user, _ = User.get_or_create(user_id=signed_request_data.user.id, user_type="facebook")
+        return make_response(jsonify({
+            "message": "Login successful!",
+            "token": user.generate_auth_token().decode('ascii')
+        }), 200)
+
+
 user_api = Blueprint('resources.users', __name__)
 api = Api(user_api)
 api.add_resource(
@@ -84,4 +100,9 @@ api.add_resource(
     GoogleLogin,
     '/login/google',
     endpoint='google_login'
+)
+api.add_resource(
+    FacebookLogin,
+    '/login/facebook',
+    endpoint='facebook_login'
 )
