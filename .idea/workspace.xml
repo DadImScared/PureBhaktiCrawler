@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ba7ad1c4-420d-4e3d-84f2-b8b939477cdf" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/requirements.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources/349b071f-904d-4b1a-b8f2-d64625045ee0.xml" afterPath="$PROJECT_DIR$/.idea/dataSources/349b071f-904d-4b1a-b8f2-d64625045ee0.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/resources/users.py" afterPath="$PROJECT_DIR$/resources/users.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bundle.js" afterPath="$PROJECT_DIR$/static/bundle.js" />
     </list>
     <ignored path="PureBhaktiCrawl.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -1045,7 +1041,14 @@
       <option name="project" value="LOCAL" />
       <updated>1502063948296</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="Added user accounts and playlists on the server">
+      <created>1502235502258</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1502235502258</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1151,7 +1154,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="LOCAL_CHANGES_DETAILS_PREVIEW_SHOWN" value="true" />
-    <MESSAGE value="added deploy_spiders.py" />
     <MESSAGE value="added search endpoints for each resource" />
     <MESSAGE value="added flask-cors" />
     <MESSAGE value="unique constraint in title in books table removed" />
@@ -1176,7 +1178,8 @@
     <MESSAGE value="changed default page amount from 50 to 25" />
     <MESSAGE value="Added user accounts and playlists on the  back end" />
     <MESSAGE value="Added user accounts and playlists on the client" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added user accounts and playlists on the client" />
+    <MESSAGE value="Added user accounts and playlists on the server" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added user accounts and playlists on the server" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
