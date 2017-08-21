@@ -682,7 +682,7 @@ class Playlist(Model):
             else:
                 item = AudioLecture.get(title=title)
         except DoesNotExist:
-            raise ValueError("Song or lecture does not exist")
+            return False, 0
         else:
             try:
                 if item_type == "song":

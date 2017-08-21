@@ -1,6 +1,7 @@
 
 from flask import Flask, current_app, abort
 from flask_cors import CORS
+from flask_sslify import SSLify
 
 import os
 import config
@@ -18,6 +19,9 @@ from resources.users import user_api
 from resources.playlists import playlist_api
 
 app = Flask(__name__)
+
+if not config.DEBUG:
+    sslify = SSLify(app)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.register_blueprint(playlist_api, url_prefix="/api/v1")
 app.register_blueprint(user_api, url_prefix='/api/v1')
@@ -32,9 +36,11 @@ app.register_blueprint(song_api, url_prefix='/api/v1')
 app.register_blueprint(all_api, url_prefix='/api/v1')
 app.secret_key = config.SECRET_KEY
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     return current_app.send_static_file('index.html')
+
 
 @app.route('/')
 @app.route('/<resource>')

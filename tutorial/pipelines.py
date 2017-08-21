@@ -36,6 +36,18 @@ class BookPipeline(object):
         return item
 
 
+class HK1996Pipeline(object):
+    def process_item(self, item, spider):
+        book = models.Book.create_book(**item)
+        item.book = book
+        return item
+
+
+class IndexBookPipeline(object):
+    def process_item(self, item, spider):
+        return item
+
+
 class BookPagePipeline(object):
     def process_item(self, item, spider):
         models.BookPage.create_page(book=self.get_book(item['title']),
