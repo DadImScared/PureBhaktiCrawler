@@ -4,7 +4,7 @@ import re
 import urllib.request
 
 
-class BookSpider(scrapy.Spider):
+class AudioLectureSpider(scrapy.Spider):
     name = 'audiolectures'
     start_urls = ['http://sbnmcd.org/All_mp3/']
 
