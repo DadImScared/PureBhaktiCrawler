@@ -17,12 +17,14 @@ from resources.songs import song_api
 from resources.all_results import all_api
 from resources.users import user_api
 from resources.playlists import playlist_api
+from resources.payments import donate_api
 
 app = Flask(__name__)
 
 if not config.DEBUG:
     sslify = SSLify(app)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.register_blueprint(donate_api, url_prefix='/api/v1')
 app.register_blueprint(playlist_api, url_prefix="/api/v1")
 app.register_blueprint(user_api, url_prefix='/api/v1')
 app.register_blueprint(bp_api, url_prefix='/api/v1')
