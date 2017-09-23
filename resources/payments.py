@@ -50,11 +50,8 @@ class Donation(Resource):
                 description="Donation to krsna.us"
             )
         except stripe.InvalidRequestError as e:
-            print("error")
-            print(e)
-        else:
-            print(charge)
-        return 200
+            return make_response(jsonify({"Invalid charge"}), 400)
+        return make_response(jsonify({"message": "success"}), 200)
 
 donate_api = Blueprint('resources.payments', __name__)
 api = Api(donate_api)
